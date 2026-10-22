@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دعوت‌نامه</title>
+    <style>
+        :root {
+            --primary-color: #ff4d6d;
+            --secondary-color: #ff758f;
+            --bg-color: #fff0f3;
+            --text-color: #590d22;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Tahoma, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            color: var(--text-color);
+        }
+
+        .container {
+            text-align: center;
+            width: min(90%, 400px);
+            background: white;
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(255, 77, 109, 0.2);
+            position: relative;
+            z-index: 10;
+        }
+
+        .screen { display: none; }
+        .screen.active { display: block; animation: fadeIn 0.5s ease-in-out; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 { font-size: 1.6rem; margin-bottom: 20px; }
+
+        /* هر دو دکمه ابتدا در جریان طبیعی صفحه و کنار هم هستند. */
+        .btn-group {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        button, .whatsapp-link {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: Tahoma, sans-serif;
+            text-decoration: none;
+        }
+
+        .btn-yes { background-color: var(--primary-color); color: white; }
+        .btn-yes:hover { transform: scale(1.1); background-color: #ff0040; }
+
+        /* دکمه نه تا قبل از فرار در جریان طبیعی صفحه است. */
+        .btn-run {
+            background-color: #ffb3c1;
+            color: var(--text-color);
+            position: static;
+            z-index: 20;
+            touch-action: manipulation;
+        }
+
+        /* فقط پس از جابه‌جایی، مختصات دکمه آزادانه روی صفحه تعیین می‌شود. */
+        .btn-run.is-running {
+            position: fixed;
+            transition: left 0.2s ease, top 0.2s ease;
+        }
+
+        input {
+            width: 80%;
+            padding: 12px;
+            border: 2px solid var(--secondary-color);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            outline: none;
+            text-align: center;
+            font-family: Tahoma, sans-serif;
+        }
+
+        .whatsapp-link {
+            display: inline-block;
+            margin-top: 20px;
+            background: #25d366;
+            color: white;
+        }
+
+        .heart {
+            position: absolute;
+            color: var(--primary-color);
+            font-size: 20px;
+            pointer-events: none;
+            animation: floatUp 3s linear forwards;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-100vh); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- صفحه ۱ -->
+        <div id="screen1" class="screen active">
+            <h1>ترنج جان... ❤️</h1>
+            <p>می‌شه بریم بیرون؟ 😊</p>
+            <div class="btn-group">
+                <button class="btn-yes" onclick="nextScreen(2)">بله!</button>
+                <button id="noBtn1" class="btn-run" onmouseenter="runButton('noBtn1')" ontouchstart="runButton('noBtn1')">نه</button>
+            </div>
+        </div>
+
+        <!-- صفحه ۲ -->
+        <div id="screen2" class="screen">
+            <h1>ایول! 😍</h1>
+            <p>کجا دوست داری بریم؟</p>
+            <input type="text" id="placeInput" placeholder="مثلاً کافه یا پارک...">
+            <div class="btn-group">
+                <button class="btn-yes" onclick="finish()">تایید</button>
+                <button id="noBtn2" class="btn-run" onmouseenter="runButton('noBtn2')" ontouchstart="runButton('noBtn2')">نمی‌دونم!</button>
+            </div>
+        </div>
+
+        <!-- صفحه ۳ -->
+        <div id="screen3" class="screen">
+            <h1>عالیه! ✨</h1>
+            <p>منتظر خبرت هستم... ❤️</p>
+            <a id="whatsappLink" class="whatsapp-link" target="_blank" rel="noopener">ارسال در واتساپ</a>
+        </div>
+    </div>
+
+    <script>
+        function nextScreen(num) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen' + num).classList.add('active');
+        }
+
+        function rectanglesOverlap(a, b, padding) {
+            return !(
+                a.right + padding < b.left ||
+                a.left - padding > b.right ||
+                a.bottom + padding < b.top ||
+                a.top - padding > b.bottom
+            );
+        }
+
+        // دکمه نه از جای بله فاصله می‌گیرد و هیچ‌وقت روی آن قرار نمی‌گیرد.
+        function runButton(id) {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+
+            btn.classList.add('is-running');
+            const yesButton = btn.parentElement.querySelector('.btn-yes');
+            const yesRect = yesButton ? yesButton.getBoundingClientRect() : null;
+            const margin = 20;
+            const maxX = Math.max(margin, window.innerWidth - btn.offsetWidth - margin);
+            const maxY = Math.max(margin, window.innerHeight - btn.offsetHeight - margin);
+            let x = margin;
+            let y = margin;
+            let candidate;
+
+            // چند نقطه تصادفی امتحان می‌شود تا دکمه روی بله یا خارج صفحه نرود.
+            for (let attempt = 0; attempt < 40; attempt++) {
+                x = margin + Math.random() * Math.max(0, maxX - margin);
+                y = margin + Math.random() * Math.max(0, maxY - margin);
+                candidate = {
+                    left: x,
+                    top: y,
+                    right: x + btn.offsetWidth,
+                    bottom: y + btn.offsetHeight
+                };
+                if (!yesRect || !rectanglesOverlap(candidate, yesRect, 24)) break;
+            }
+
+            btn.style.left = `${x}px`;
+            btn.style.top = `${y}px`;
+
+            const texts = ["مطمئنی؟", "واقعاً؟", "فکر کن!", "دوباره فکر کن!", "نهههه", "نمی‌شه که!"];
+            btn.textContent = texts[Math.floor(Math.random() * texts.length)];
+        }
+
+        function finish() {
+            const place = document.getElementById('placeInput').value.trim();
+            if (!place) {
+                alert('لطفاً یک مکان بنویس ❤️');
+                return;
+            }
+
+            const phone = '989169856650';
+            const message = `سلام، برای رفتن به ${place} موافقم ❤️`;
+            const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+            document.getElementById('whatsappLink').href = whatsappUrl;
+            nextScreen(3);
+
+            setInterval(() => {
+                const heart = document.createElement('div');
+                heart.classList.add('heart');
+                heart.textContent = '❤️';
+                heart.style.left = Math.random() * 100 + 'vw';
+                document.body.appendChild(heart);
+                setTimeout(() => heart.remove(), 3000);
+            }, 150);
+        }
+    </script>
+</body>
+</html>
